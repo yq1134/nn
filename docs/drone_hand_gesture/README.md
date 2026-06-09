@@ -11,18 +11,7 @@
 
 ---
 
-<<<<<<< HEAD
-- ✅ 实时手势识别（MediaPipe）
-- ✅ 本地 3D 仿真模式
-- ✅ AirSim 真实模拟器集成
-- ✅ 传统机器学习手势分类（SVM、随机森林、MLP）
-- ✅ **深度学习手势分类（CNN、Transformer、深度MLP）**
-- ✅ **多模型对比训练**
-- ✅ **实时可视化结果**
-- ✅ 数据收集与训练
-=======
 ## 📋 目录
->>>>>>> c4023de5 (mkdocs修改和src文件移动)
 
 - [✨ 功能特性](#-功能特性)
 - [📁 项目结构](#-项目结构)
@@ -153,11 +142,7 @@ python main_deep_learning.py --model_path dataset/models/gesture_deep_cnn.pth --
 
 ## 🎮 控制指南
 
-<<<<<<< HEAD
-### 支持的模型架构
-=======
 ### ⌨️ 键盘快捷键
->>>>>>> c4023de5 (mkdocs修改和src文件移动)
 
 | 类别 | 按键 | 功能 |
 |------|------|------|
@@ -264,36 +249,6 @@ python train_deep_gesture.py --compare
 
 ---
 
-<<<<<<< HEAD
-| 手势 | 命令 | 说明 |
-|------|------|------|
-| open_palm | 起飞 | 张开手掌 |
-| closed_fist | 降落 | 握拳 |
-| pointing_up | 上升 | 食指向上 |
-| pointing_down | 下降 | 食指向下 |
-| victory | 前进 | 胜利手势（V字） |
-| thumb_up | 后退 | 大拇指向上 |
-| thumb_down | 停止 | 大拇指向下 |
-| ok_sign | 悬停 | OK手势 |
-| rock | 左转 | 摇滚手势 |
-| peace | 右转 | 和平手势 |
-
-## 参考项目
-
-本项目基于以下开源项目开发：
-
-- [Autonomous Drone Hand Gesture Project](https://github.com/chwee/AutonomusDroneHandGestureProject)
-  - 原始手势控制无人机项目
-  - 提供了基础架构和实现思路
-
-- [MediaPipe Hands](https://github.com/google/mediapipe)
-  - Google开源的手部关键点检测框架
-  - 本项目使用其进行实时手势识别
-
-- [PyTorch](https://pytorch.org/)
-  - Facebook开源的深度学习框架
-  - 本项目使用其实现深度学习模型
-=======
 ## 🔧 环境兼容性
 
 ### Windows + Python 3.11 特别优化
@@ -328,4 +283,3 @@ PyOpenGL>=3.1.0            # 3D 仿真渲染
 <p align="center">
   <sub>Made with ❤️ | 手势控制无人机项目</sub>
 </p>
->>>>>>> c4023de5 (mkdocs修改和src文件移动)
