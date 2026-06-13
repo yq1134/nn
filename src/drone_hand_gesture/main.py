@@ -591,7 +591,25 @@ class IntegratedDroneSimulation:
         cv2.putText(enhanced_frame, f"Z: {pos[2]:.2f}m", 
                     (width + 20, y_offset),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 255, 150), 1)
-        y_offset += 30
+        y_offset += 15
+        
+        # 显示距原点距离
+        dist_from_home = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+        dist_color = (0, 255, 0) if dist_from_home < 5 else (0, 255, 255) if dist_from_home < 10 else (0, 128, 255)
+        cv2.putText(enhanced_frame, f"HOME: {dist_from_home:.1f}m", 
+                    (width + 20, y_offset),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, dist_color, 1)
+        y_offset += 5
+
+        # 返航状态提示
+        if drone_state['mode'] == 'RETURN_HOME':
+            cv2.rectangle(enhanced_frame, (width + 15, y_offset), (width + 305, y_offset + 28), (0, 0, 200), -1)
+            cv2.putText(enhanced_frame, "⚠ RETURNING HOME...", 
+                        (width + 25, y_offset + 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 1)
+            y_offset += 30
+
+        y_offset += 20
         
         # 显示统计面板或控制提示（V键切换）
         if self.show_stats_panel:
@@ -658,6 +676,7 @@ class IntegratedDroneSimulation:
             "Q/ESC: Exit",
             "C: Switch Camera",
             "I: Mirror On/Off",
+            "B: Return Home (!)",
             "P: Record Trajectory",
             "O: Save Recording",
             "J: Replay Trajectory",
@@ -842,6 +861,7 @@ class IntegratedDroneSimulation:
         print("  Q/ESC - 退出")
         print("  C - 切换摄像头")
         print("  I - 切换镜像模式")
+        print("  B - ⚠ 一键紧急返航")
         print("  P - 开始录制轨迹")
         print("  O - 停止录制并保存")
         print("  J - 加载并回放轨迹")
@@ -861,6 +881,13 @@ class IntegratedDroneSimulation:
         print("  T - 手动起飞")
         print("  L - 手动降落")
         print("  S - 停止")
+        print("=" * 60)
+        print()
+        print("紧急返航说明:")
+        print("  键盘: 按 'B' 键")
+        print("  手势: 做出 '摇滚手势' (食指+小指) 或 '和平手势' (食指+中指)")
+        print("  效果: 无人机以1.5倍最大速度直线飞回起飞点(0,0,0)")
+        print("       到达后自动降落并解除武装")
         print("=" * 60)
         print()
         print("灵敏度说明:")
@@ -1066,11 +1093,14 @@ class IntegratedDroneSimulation:
                         gesture == self.last_processed_gesture and
                         current_time - getattr(self, 'last_processed_time', 0) < 2.0)
 
-        # 只处理置信度高于阈值的手势且不在冷却期
+        # 紧急返航手势特殊处理 - 跳过冷却时间限制
+        is_emergency_gesture = gesture in ("rock", "peace")
+
+        # 只处理置信度高于阈值的手势且不在冷却期（紧急手势除外）
         if (gesture not in ["no_hand", "hand_detected"] and
                 confidence > threshold and
-                not in_cooldown and
-                not same_gesture):
+                (not in_cooldown or is_emergency_gesture) and
+                (not same_gesture or is_emergency_gesture)):
 
             # 获取控制命令
             command = self.gesture_detector.get_command(gesture)
@@ -1151,6 +1181,7 @@ class IntegratedDroneSimulation:
         print("           按 'T' 键手动起飞")
         print("           按 'L' 键手动降落")
         print("           按 'H' 键悬停")
+        print("           按 'B' 键一键紧急返航")
         print("           按 'P' 键开始录制轨迹")
         print("           按 'O' 键停止录制并保存")
         print("           按 'J' 键加载并回放轨迹")
@@ -1225,6 +1256,16 @@ class IntegratedDroneSimulation:
                     print("[INFO] 键盘：停止")
                     self.drone_controller.send_command("stop")
                     self._last_key_press['s'] = current_time
+
+            # 检查紧急返航键 B
+            if keys[pygame.K_b]:
+                if ('b' not in self._last_key_press or
+                        current_time - self._last_key_press['b'] > 3.0):  # 3秒防抖，防止误触
+                    print("\n" + "=" * 60)
+                    print("  ⚠️  一键紧急返航（键盘触发）")
+                    print("=" * 60)
+                    self.drone_controller.send_command("return_home")
+                    self._last_key_press['b'] = current_time
 
             # ========== 轨迹录制/回放控制 ==========
             # 检查录制键 P
@@ -1463,6 +1504,7 @@ class IntegratedDroneSimulation:
         print("    G - 切换网格显示")
         print("    T - 切换轨迹显示")
         print("    A - 切换坐标轴显示")
+        print("    B - ⚠ 一键紧急返航")
         print("    ↑↓←→ - 旋转视角")
         print("    +/- - 缩放视角")
         print("    空格 - 重置视角")
@@ -1482,7 +1524,8 @@ class IntegratedDroneSimulation:
         print("  7. 按 '1-7' 数字键快速添加带标签的航点")
         print("  8. 航点会与轨迹一起保存，方便航线回放")
         print("  9. 按 'v' 键切换飞行统计面板（实时数据）")
-        print("  10. 退出时自动打印完整飞行统计报告")
+        print("  10. 按 'b' 键一键紧急返航到起飞点")
+        print("  11. 退出时自动打印完整飞行统计报告")
         print("=" * 60)
         print("系统启动中...")
 
